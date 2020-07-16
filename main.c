@@ -6,7 +6,7 @@
 #include "pixelsort.h"
 
 void printhelp(char *executable) {
-    printf("usage: %s [options]\n", executable);
+    printf("usage: %s [options] input\n", executable);
     printf("\n");
     printf("options:\n");
     printf("  -h    this help message.\n");
@@ -15,7 +15,7 @@ void printhelp(char *executable) {
     printf("  -d    order of sorting directions (default \"hv\").\n");
 }
 
-void parseargs(int argc, char **argv, context_t *ctx) {
+char *parseargs(int argc, char **argv, context_t *ctx) {
     int opt;
 
     while((opt = getopt(argc, argv, "hd:u:l:")) != -1) {
@@ -39,6 +39,13 @@ void parseargs(int argc, char **argv, context_t *ctx) {
                 break;
         }
     }
+
+    if (argc - optind < 1) {
+        fprintf(stderr, "Input image not supplied");
+        exit(1);
+    }
+
+    return argv[optind];
 
 }
 
@@ -73,14 +80,14 @@ int main(int argc, char **argv) {
         .dirs = "hv",
         .check_color = checkThreshold
     };
-    parseargs(argc, argv, &ctx);
+    char *imgname = parseargs(argc, argv, &ctx);
 
     printf("Starting\n");
     FreeImage_Initialise(1);
 
-    FIBITMAP *img = load_image("test.png");
+    FIBITMAP *img = load_image(imgname);
     if (!img) {
-        fprintf(stderr, "Error loading image test.png\n");
+        fprintf(stderr, "Error loading image %s\n", imgname);
         return 1;
     }
 
@@ -89,8 +96,8 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    if (!FreeImage_Save(FIF_PNG, img, "test2.png", 0)) {
-        fprintf(stderr, "Error saving to test2.png\n");
+    if (!FreeImage_Save(FIF_PNG, img, "out.png", 0)) {
+        fprintf(stderr, "Error saving to out.png\n");
         return 1;
     }
 
